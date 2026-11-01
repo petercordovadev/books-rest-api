@@ -58,7 +58,6 @@ export function createApp(service: BooksService): Express {
   }
 
   app.use(
-    "/api",
     rateLimit({
       windowMs: config.rateLimitWindowMs,
       limit: config.rateLimitMax,
