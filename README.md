@@ -249,6 +249,9 @@ The suite boots the app with a temporary database per test, so tests never touch
 `data/db.json`. It covers CRUD flows, validation, 404/400 responses, ID collisions, persistence,
 malformed JSON, unknown routes, payload limits and the documentation endpoints.
 
+CI runs the suite on Node.js 22, 24 and 26, and enforces the coverage thresholds defined in
+`vitest.config.ts`.
+
 ## Security
 
 - `helmet` sets secure HTTP headers and removes `X-Powered-By`.
