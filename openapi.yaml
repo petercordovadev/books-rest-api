@@ -1,0 +1,324 @@
+openapi: 3.0.3
+info:
+  title: Books REST API
+  version: 1.0.0
+  description: |
+    A small, production-minded REST API for managing a book catalog.
+
+    Built with Node.js, Express 5 and TypeScript. Data is persisted to a JSON
+    file using atomic writes, and every request body is validated with Zod.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:3000
+    description: Local development
+tags:
+  - name: Books
+    description: Book catalog operations
+  - name: System
+    description: Service metadata and health
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /api/v1/books:
+    get:
+      tags: [Books]
+      summary: List every book
+      operationId: listBooks
+      responses:
+        "200":
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Book"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags: [Books]
+      summary: Create a book
+      operationId: createBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        "201":
+          description: Book created
+          headers:
+            Location:
+              description: URL of the created book
+              schema:
+                type: string
+                example: /api/v1/books/6
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /api/v1/books/{id}:
+    parameters:
+      - $ref: "#/components/parameters/BookId"
+    get:
+      tags: [Books]
+      summary: Get a book by id
+      operationId: getBook
+      responses:
+        "200":
+          description: The requested book
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    put:
+      tags: [Books]
+      summary: Replace a book
+      description: Replaces every field of the book. Use PATCH for partial updates.
+      operationId: replaceBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        "200":
+          description: Book replaced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    patch:
+      tags: [Books]
+      summary: Update some fields of a book
+      operationId: updateBook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookUpdate"
+      responses:
+        "200":
+          description: Book updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags: [Books]
+      summary: Delete a book
+      operationId: deleteBook
+      responses:
+        "204":
+          description: Book deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+components:
+  parameters:
+    BookId:
+      name: id
+      in: path
+      required: true
+      description: Numeric book identifier
+      schema:
+        type: integer
+        minimum: 1
+        example: 1
+  schemas:
+    Book:
+      type: object
+      required: [id, title, author, year]
+      additionalProperties: false
+      properties:
+        id:
+          type: integer
+          minimum: 1
+          example: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: The Great Gatsby
+        author:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: F. Scott Fitzgerald
+        year:
+          type: integer
+          minimum: 0
+          maximum: 2026
+          example: 1925
+    BookInput:
+      type: object
+      required: [title, author, year]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: The Pragmatic Programmer
+        author:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: Andrew Hunt and David Thomas
+        year:
+          type: integer
+          minimum: 0
+          maximum: 2026
+          example: 1999
+    BookUpdate:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          example: The Pragmatic Programmer
+        author:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: Andrew Hunt and David Thomas
+        year:
+          type: integer
+          minimum: 0
+          maximum: 2026
+          example: 1999
+    Health:
+      type: object
+      required: [status, uptime, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          example: ok
+        uptime:
+          type: number
+          example: 42.5
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-10-31T12:00:00.000Z"
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: BOOK_NOT_FOUND
+            message:
+              type: string
+              example: Book with id 999 was not found
+            details:
+              type: array
+              description: Field-level validation errors, when available.
+              items:
+                type: object
+                required: [path, message]
+                properties:
+                  path:
+                    type: string
+                    example: title
+                  message:
+                    type: string
+                    example: Title is required
+  responses:
+    BadRequest:
+      description: Invalid request body or route parameter
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: Request body is invalid
+              details:
+                - path: title
+                  message: Title is required
+    NotFound:
+      description: Book or route not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: BOOK_NOT_FOUND
+              message: Book with id 999 was not found
+    PayloadTooLarge:
+      description: Request body is larger than the 10 kB limit
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: PAYLOAD_TOO_LARGE
+              message: request entity too large
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: RATE_LIMITED
+              message: Too many requests, please try again later.

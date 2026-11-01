@@ -1,0 +1,16 @@
+node_modules
+dist
+coverage
+.git
+.github
+.env
+.env.*
+!.env.example
+data/db.json
+data/*.tmp
+*.log
+README.md
+SECURITY.md
+requests.http
+tests
+vitest.config.ts
