@@ -294,6 +294,10 @@ This project began as a learning exercise following a REST API tutorial on YouTu
 implementation is a rewrite: TypeScript, layered structure, Zod validation, atomic persistence,
 tests, security middleware and documentation were added afterwards.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for the release history.
+
 ## License
 
 Released under the [MIT License](LICENSE).
